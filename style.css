@@ -10,23 +10,34 @@
     --font-family: 'Cairo', sans-serif;
 }
 
-body {
+/* --- CORE LAYOUT FOR FULL-SCREEN CAPABILITY --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
     font-family: var(--font-family);
     background-color: var(--background-color);
     color: var(--text-color);
-    margin: 0;
-    line-height: 1.6;
 }
 
 #app {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Make app container fill the viewport height */
 }
+
+main#content {
+    flex: 1; /* Allow the main content area to grow */
+    position: relative; /* Anchor for the absolute positioned graph view */
+    overflow-y: auto; /* Allow scrolling for normal views like timeline */
+    padding: 0 2rem;
+}
+/* --- END CORE LAYOUT --- */
+
 
 .app-header {
     text-align: center;
-    margin-bottom: 2rem;
+    padding: 2rem 1rem 0 1rem;
 }
 
 .app-header h1 {
@@ -45,7 +56,7 @@ body {
     display: flex;
     justify-content: center;
     border-bottom: 2px solid var(--border-color);
-    margin-bottom: 2rem;
+    margin: 1.5rem 2rem 0 2rem;
 }
 
 .tab-btn {
@@ -72,22 +83,16 @@ body {
 
 .view.active {
     display: block;
-    animation: fadeIn 0.5s ease-in-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* --- REBUILT TIMELINE VIEW (Based on your preferred layout) --- */
+/* --- Timeline View --- */
 .timeline-container {
     position: relative;
     width: 100%;
-    margin: 0 auto;
+    max-width: 1000px;
+    margin: 2rem auto;
 }
 
-/* The central vertical line */
 .timeline-container::after {
     content: '';
     position: absolute;
@@ -107,7 +112,6 @@ body {
     box-sizing: border-box;
 }
 
-/* The dot on the timeline */
 .timeline-item::after {
     content: '';
     position: absolute;
@@ -121,146 +125,75 @@ body {
     z-index: 1;
 }
 
-/* Place container to the left */
-.timeline-item.left {
-    left: 0;
-}
+.timeline-item.left { left: 0; }
+.timeline-item.right { left: 50%; }
+.timeline-item.right::after { left: -11px; }
 
-/* Place container to the right */
-.timeline-item.right {
-    left: 50%;
-}
+.timeline-card { padding: 1.5rem; background-color: white; position: relative; border-radius: 8px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.timeline-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.timeline-card-header { display: flex; align-items: center; gap: 1rem; }
+.timeline-avatar { width: 50px; height: 50px; border-radius: 50%; background-color: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; flex-shrink: 0; }
+.timeline-info h3 { font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--text-color); }
+.timeline-info p { margin: 0; font-size: 0.9rem; color: var(--light-text-color); }
 
-/* Adjust the dot for right-side items */
-.timeline-item.right::after {
-    left: -11px;
-}
-
-.timeline-card {
-    padding: 1.5rem;
-    background-color: white;
-    position: relative;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.timeline-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-}
-
-.timeline-card-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.timeline-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.timeline-info h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0 0 0.25rem;
-    color: var(--text-color);
-}
-
-.timeline-info p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--light-text-color);
-}
-/* --- END OF TIMELINE VIEW --- */
-
-/* Categories View */
+/* --- Categories View --- */
 .categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
+    padding: 2rem 0;
 }
 
-.category-card {
-    border-radius: 12px;
-    padding: 1.5rem;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    overflow: hidden;
-}
-
-.category-card:hover {
-    transform: scale(1.03);
-}
-
-.category-card h3 {
-    font-size: 1.5rem;
-    margin: 0 0 1rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-    padding-bottom: 0.5rem;
-}
-
-.category-philosophers {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease-in-out;
-}
-
-.category-card.open .category-philosophers {
-    max-height: 1000px;
-}
-
-.philosopher-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(0, 0, 0, 0.15);
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.3s;
-}
-
-.philosopher-item:hover {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.philosopher-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--card-bg-color);
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
+.category-card { border-radius: 12px; padding: 1.5rem; color: white; cursor: pointer; transition: transform 0.3s ease; overflow: hidden; }
+.category-card:hover { transform: scale(1.03); }
+.category-card h3 { font-size: 1.5rem; margin: 0 0 1rem; border-bottom: 2px solid rgba(255, 255, 255, 0.5); padding-bottom: 0.5rem; }
+.category-philosophers { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out; }
+.category-card.open .category-philosophers { max-height: 1000px; }
+.philosopher-item { display: flex; align-items: center; gap: 1rem; background: rgba(0, 0, 0, 0.15); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; transition: background-color 0.3s; }
+.philosopher-item:hover { background: rgba(0, 0, 0, 0.3); }
+.philosopher-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--card-bg-color); color: var(--text-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; flex-shrink: 0; }
 .philosopher-item-info h4 { margin: 0; font-size: 1rem; }
 .philosopher-item-info p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
 
-/* Graph View */
-.graph-container { width: 100%; height: 70vh; border: 1px solid var(--border-color); background-color: white; box-shadow: var(--shadow); border-radius: 12px; }
-.graph-instructions { text-align: center; margin-top: 1rem; color: var(--light-text-color); }
+/* --- FULL-SCREEN GRAPH VIEW --- */
+#graph-view.active {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#graph-container {
+    flex: 1; /* Make the container grow to fill space */
+    border: 1px solid var(--border-color);
+    background-color: white;
+    box-shadow: var(--shadow);
+    border-radius: 12px;
+    overflow: hidden; /* Hide anything that might spill out */
+}
+
+#influence-graph {
+    width: 100%;
+    height: 100%;
+}
+
+.graph-instructions {
+    padding: 0.75rem;
+    text-align: center;
+    color: var(--light-text-color);
+    flex-shrink: 0; /* Prevent instructions from shrinking */
+}
+
 .node circle { stroke: #fff; stroke-width: 2px; cursor: pointer; transition: r 0.3s ease; }
 .node:hover circle { r: 15; }
 .node text { pointer-events: none; font-family: var(--font-family); font-size: 12px; fill: var(--text-color); font-weight: 600; }
 .link { stroke: #999; stroke-opacity: 0.6; }
+
 
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
@@ -276,26 +209,14 @@ body {
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
-    #app { padding: 1rem; }
+    #app { padding: 0; }
+    main#content, .tabs { padding-left: 1rem; padding-right: 1rem; margin-left: 0; margin-right: 0;}
     .app-header h1 { font-size: 2rem; }
 
-    /* Responsive Timeline: Stack everything on the left */
-    .timeline-container::after {
-        left: 20px; /* Move line to the left */
-    }
+    /* Responsive Timeline */
+    .timeline-container::after { left: 20px; }
+    .timeline-item, .timeline-item.right, .timeline-item.left { width: 100%; padding-left: 60px; padding-right: 15px; left: 0; }
+    .timeline-item::after, .timeline-item.right::after, .timeline-item.left::after { left: 11px; }
 
-    .timeline-item,
-    .timeline-item.right,
-    .timeline-item.left {
-        width: 100%;
-        padding-left: 60px; /* Make space for line and dot */
-        padding-right: 15px;
-        left: 0;
-    }
-
-    .timeline-item::after,
-    .timeline-item.right::after,
-    .timeline-item.left::after {
-        left: 11px; /* Position all dots on the new line */
-    }
+    #graph-view.active { padding: 0.5rem; }
 }
