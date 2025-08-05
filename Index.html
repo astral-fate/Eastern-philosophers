@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خريطة الفلاسفة العرب</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar for timeline */
+        .timeline-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .timeline-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .timeline-container::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 20px;
+            border: 3px solid #f1f5f9;
+        }
+        /* Animation for modal */
+        .modal-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-leave {
+            animation: fadeOut 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        .timeline-node::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: #cbd5e1;
+        }
+        .timeline-node.right::before {
+            right: 100%;
+        }
+        .timeline-node.left::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="app" class="max-w-4xl mx-auto p-4 md:p-8">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-600">استكشف الفلاسفة عبر التاريخ</h1>
+            <p class="text-slate-500 mt-2">رحلة في عقول العصر الذهبي وما بعده</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="mb-8 flex justify-center border-b border-slate-200">
+            <button id="timeline-tab" class="tab-btn px-6 py-3 text-lg font-semibold text-teal-600 border-b-2 border-teal-600">الخط الزمني</button>
+            <button id="categories-tab" class="tab-btn px-6 py-3 text-lg font-semibold text-slate-500">الفئات</button>
+        </div>
+
+        <!-- Main Content -->
+        <main id="content">
+            <!-- Timeline View -->
+            <div id="timeline-view">
+                <div class="relative timeline-container overflow-y-auto max-h-[70vh] p-4">
+                    <!-- Central Line -->
+                    <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-300"></div>
+                    <div id="timeline-content" class="space-y-16">
+                        <!-- Philosophers will be injected here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories View (hidden by default) -->
+            <div id="categories-view" class="hidden">
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Categories will be injected here by JS -->
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="philosopher-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden modal-enter">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="modal-content">
+            <!-- Modal content will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        const philosophers = [
+            {
+                id: 1,
+                name: "الكندي",
+                dates: "801 - 873 م",
+                bio: "يُلقب بـ 'فيلسوف العرب'، وهو أول الفلاسفة المشائين البارزين في العالم الإسلامي. سعى للتوفيق بين الفلسفة اليونانية والإسلام.",
+                influence: "أرسطو، الأفلاطونية المحدثة",
+                area: "الميتافيزيقا، الأخلاق، الرياضيات، الموسيقى",
+                works: "رسالة في الفلسفة الأولى، رسالة في العقل، رسالة في الحيلة لدفع الأحزان",
+                category: "الفلسفة المشائية"
+            },
+            {
+                id: 2,
+                name: "الفارابي",
+                dates: "872 - 950 م",
+                bio: "لُقب بـ 'المعلم الثاني' بعد أرسطو. فيلسوف منطقي وسياسي، أسس لمدرسة فلسفية متكاملة.",
+                influence: "أرسطو، أفلاطون",
+                area: "المنطق، فلسفة السياسة، الميتافيزيقا",
+                works: "آراء أهل المدينة الفاضلة، كتاب الموسيقى الكبير، إحصاء العلوم",
+                category: "الفلسفة المشائية"
+            },
+            {
+                id: 3,
+                name: "ابن سينا",
+                dates: "980 - 1037 م",
+                bio: "طبيب وفيلسوف موسوعي، من أعظم المفكرين في التاريخ. كان لنسقه الفلسفي تأثير هائل على الفكر الإسلامي والأوروبي.",
+                influence: "أرسطو، الفارابي",
+                area: "الطب، الميتافيزيقا، المنطق، علم النفس",
+                works: "كتاب الشفاء، القانون في الطب، الإشارات والتنبيهات",
+                category: "الفلسفة المشائية"
+            },
+            {
+                id: 4,
+                name: "الغزالي",
+                dates: "1058 - 1111 م",
+                bio: "متكلم وفقيه ومتصوف، يُعرف بـ 'حجة الإسلام'. انتقد الفلاسفة المشائين ودمج التصوف في صلب الفكر السني.",
+                influence: "الفكر الأشعري، الفلسفة السينوية (كنقد)",
+                area: "علم الكلام، التصوف، نقد الفلسفة",
+                works: "تهافت الفلاسفة، إحياء علوم الدين، المنقذ من الضلال",
+                category: "علم الكلام والتصوف"
+            },
+            {
+                id: 5,
+                name: "ابن باجة",
+                dates: "1085 - 1138 م",
+                bio: "أول فيلسوف مشائي كبير في الأندلس. ركز على فكرة 'تدبير المتوحد'، أي كيف يمكن للفيلسوف تحقيق الكمال في مجتمع غير فاضل.",
+                influence: "الفارابي، أرسطو",
+                area: "الأخلاق، السياسة، علم النفس",
+                works: "تدبير المتوحد، رسالة الوداع",
+                category: "الفكر الأندلسي"
+            },
+            {
+                id: 6,
+                name: "ابن طفيل",
+                dates: "1105 - 1185 م",
+                bio: "فيلسوف وطبيب، اشتهر بروايته الفلسفية 'حي بن يقظان' التي تستكشف إمكانية وصول العقل البشري للحقيقة دون وحي أو مجتمع.",
+                influence: "ابن سينا، ابن باجة",
+                area: "القصة الفلسفية، علم النفس",
+                works: "حي بن يقظان",
+                category: "الفكر الأندلسي"
+            },
+            {
+                id: 7,
+                name: "ابن رشد",
+                dates: "1126 - 1198 م",
+                bio: "أعظم شراح أرسطو، دافع عن الفلسفة ضد هجوم الغزالي. كان له تأثير حاسم على الفلسفة الأوروبية في العصور الوسطى.",
+                influence: "أرسطو",
+                area: "الفلسفة، الطب، الفقه",
+                works: "تهافت التهافت، فصل المقال",
+                category: "الفكر الأندلسي"
+            },
+            {
+                id: 8,
+                name: "السهروردي",
+                dates: "1154 - 1191 م",
+                bio: "مؤسس 'فلسفة الإشراق'، وهي مدرسة تجمع بين الفلسفة المشائية والتصوف والحكمة الفارسية القديمة.",
+                influence: "الأفلاطونية، الزرادشتية، الفكر الصوفي",
+                area: "الميتافيزيقا، التصوف (الإشراق)",
+                works: "حكمة الإشراق",
+                category: "التصوف والفلسفة الإشراقية"
+            },
+            {
+                id: 9,
+                name: "ابن عربي",
+                dates: "1165 - 1240 م",
+                bio: "يُلقب بـ 'الشيخ الأكبر'، وهو من أبرز المتصوفة والفلاسفة. طور نظرية 'وحدة الوجود' التي أثرت بعمق في الفكر الصوفي.",
+                influence: "الفكر الصوفي، الأفلاطونية المحدثة",
+                area: "التصوف، الميتافيزيقا",
+                works: "الفتوحات المكية، فصوص الحكم",
+                category: "التصوف والفلسفة الإشراقية"
+            },
+            {
+                id: 10,
+                name: "ابن خلدون",
+                dates: "1332 - 1406 م",
+                bio: "مؤرخ وفيلسوف، يعتبر مؤسس علم الاجتماع الحديث. قدم في مقدمته تحليلاً عميقاً لنشأة الدول وسقوطها.",
+                influence: "الفكر التاريخي الإسلامي، الواقع السياسي",
+                area: "فلسفة التاريخ، علم الاجتماع (العمران)",
+                works: "مقدمة ابن خلدون",
+                category: "الفكر الأندلسي"
+            },
+             {
+                id: 11,
+                name: "أبو بكر الرازي",
+                dates: "865 - 925 م",
+                bio: "طبيب وكيميائي وفيلسوف، عُرف بآرائه العقلانية الجريئة وشكوكه الفلسفية. كان يعتقد بأولوية العقل على النقل.",
+                influence: "أفلاطون، ديموقريطس",
+                area: "الطب، الفلسفة الطبيعية، الأخلاق",
+                works: "الحاوي في الطب، الطب الروحاني، السيرة الفلسفية",
+                category: "العلوم والفلسفة الطبيعية"
+            },
+            {
+                id: 12,
+                name: "ابن الهيثم",
+                dates: "965 - 1040 م",
+                bio: "عالم فيزياء ورياضيات، يعتبر مؤسس علم البصريات الحديث والمنهج العلمي التجريبي. قدم مساهمات فلسفية في الإدراك والمنهج.",
+                influence: "إقليدس، بطليموس",
+                area: "البصريات، المنهج العلمي، الفيزياء",
+                works: "كتاب المناظر، الشكوك على بطليموس",
+                category: "العلوم والفلسفة الطبيعية"
+            }
+        ];
+
+        // --- DOM Elements ---
+        const timelineTab = document.getElementById('timeline-tab');
+        const categoriesTab = document.getElementById('categories-tab');
+        const timelineView = document.getElementById('timeline-view');
+        const categoriesView = document.getElementById('categories-view');
+        const timelineContent = document.getElementById('timeline-content');
+        const categoriesContainer = document.querySelector('#categories-view .grid');
+        const modal = document.getElementById('philosopher-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        // --- Functions ---
+        
+        function getYear(dates) {
+            return parseInt(dates.split(' - ')[0]);
+        }
+        
+        philosophers.sort((a, b) => getYear(a.dates) - getYear(b.dates));
+
+        function renderTimeline() {
+            timelineContent.innerHTML = '';
+            philosophers.forEach((p, index) => {
+                const side = index % 2 === 0 ? 'left' : 'right';
+                const nodeHtml = `
+                    <div class="relative flex ${side === 'left' ? 'justify-start' : 'justify-end'}">
+                        <div class="w-5/12 timeline-node ${side}">
+                            <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer" onclick="openModal(${p.id})">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center font-bold text-xl">
+                                        ${p.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-md text-slate-800">${p.name}</h3>
+                                        <p class="text-sm text-slate-500">${p.dates}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Dot on the timeline -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-slate-400 rounded-full border-4 border-slate-50"></div>
+                    </div>
+                `;
+                timelineContent.innerHTML += nodeHtml;
+            });
+        }
+        
+        function renderCategories() {
+            const categories = [...new Set(philosophers.map(p => p.category))];
+            const categoryColors = {
+                "الفلسفة المشائية": "bg-sky-500",
+                "علم الكلام والتصوف": "bg-amber-500",
+                "الفكر الأندلسي": "bg-emerald-500",
+                "التصوف والفلسفة الإشراقية": "bg-purple-500",
+                "العلوم والفلسفة الطبيعية": "bg-rose-500"
+            };
+
+            categoriesContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const philosophersInCategory = philosophers.filter(p => p.category === cat);
+                let philosophersHtml = '';
+                philosophersInCategory.forEach(p => {
+                    philosophersHtml += `
+                        <div class="flex items-center gap-3 p-3 bg-white/20 rounded-lg cursor-pointer hover:bg-white/40" onclick="openModal(${p.id})">
+                            <div class="w-10 h-10 bg-white text-slate-800 rounded-full flex items-center justify-center font-bold text-lg">
+                                ${p.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-white">${p.name}</h4>
+                                <p class="text-sm text-white/80">${p.dates}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const categoryHtml = `
+                    <div class="rounded-xl p-6 ${categoryColors[cat] || 'bg-gray-500'} text-white shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">${cat}</h3>
+                        <div class="space-y-3">
+                            ${philosophersHtml}
+                        </div>
+                    </div>
+                `;
+                categoriesContainer.innerHTML += categoryHtml;
+            });
+        }
+
+        function openModal(id) {
+            const philosopher = philosophers.find(p => p.id === id);
+            if (!philosopher) return;
+
+            modalContent.innerHTML = `
+                <div class="p-6 md:p-8">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-teal-600">${philosopher.name}</h2>
+                            <p class="text-slate-500">${philosopher.dates}</p>
+                        </div>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-800 transition-colors">&times;</button>
+                    </div>
+                    
+                    <div class="space-y-6 text-slate-700">
+                        <div>
+                            <h4 class="font-semibold border-b-2 border-teal-100 pb-1 mb-2">نبذة</h4>
+                            <p>${philosopher.bio}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold border-b-2 border-teal-100 pb-1 mb-2">مجال الاهتمام</h4>
+                            <p>${philosopher.area}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold border-b-2 border-teal-100 pb-1 mb-2">تأثر بـ</h4>
+                            <p>${philosopher.influence}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold border-b-2 border-teal-100 pb-1 mb-2">أهم الأعمال</h4>
+                            <p>${philosopher.works}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 rounded-b-2xl text-right">
+                     <button onclick="closeModal()" class="bg-teal-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-teal-600 transition-colors">إغلاق</button>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave');
+            modal.classList.add('modal-enter');
+        }
+
+        function closeModal() {
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-leave');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Match animation duration
+        }
+
+        // --- Event Listeners ---
+        timelineTab.addEventListener('click', () => {
+            timelineView.classList.remove('hidden');
+            categoriesView.classList.add('hidden');
+            timelineTab.classList.add('text-teal-600', 'border-teal-600');
+            categoriesTab.classList.remove('text-teal-600', 'border-teal-600');
+            categoriesTab.classList.add('text-slate-500');
+        });
+
+        categoriesTab.addEventListener('click', () => {
+            categoriesView.classList.remove('hidden');
+            timelineView.classList.add('hidden');
+            categoriesTab.classList.add('text-teal-600', 'border-teal-600');
+            timelineTab.classList.remove('text-teal-600', 'border-teal-600');
+            timelineTab.classList.add('text-slate-500');
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // --- Initial Render ---
+        renderTimeline();
+        renderCategories();
+    </script>
+</body>
+</html>
